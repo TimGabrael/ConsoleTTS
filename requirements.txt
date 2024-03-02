@@ -1,0 +1,9 @@
+faster_whisper==0.9.0
+librosa==0.10.1
+numpy==1.24.3
+pandas==1.5.3
+torch==2.2.1
+torchaudio==2.2.1
+tqdm==4.65.0
+trainer==0.0.36
+TTS==0.21.3
