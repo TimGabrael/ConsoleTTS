@@ -41,7 +41,7 @@ def load_model(xtts_checkpoint, xtts_config, xtts_vocab):
     print("Model Loaded!")
     return xtts_model
 
-def run_tts(model, lang, tts_text, speaker_audio_file):
+def run_tts(model, lang, tts_text, speaker_audio_file, output_filepath=""):
     if model is None or not speaker_audio_file:
         print("You need to run the previous step to load the model !!")
         return "You need to run the previous step to load the model !!", "", ""
@@ -58,11 +58,16 @@ def run_tts(model, lang, tts_text, speaker_audio_file):
         top_k=model.config.top_k,
         top_p=model.config.top_p,
     )
-
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as fp:
-        out["wav"] = torch.tensor(out["wav"]).unsqueeze(0)
-        out_path = fp.name
-        torchaudio.save(out_path, out["wav"], 24000)
+    if output_filepath == "":
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as fp:
+            out["wav"] = torch.tensor(out["wav"]).unsqueeze(0)
+            out_path = fp.name
+            torchaudio.save(out_path, out["wav"], 24000)
+    else:
+        with open(output_filepath, "wb") as fp:
+            out["wav"] = torch.tensor(out["wav"]).unsqueeze(0) 
+            out_path = fp.name
+            torchaudio.save(out_path, out["wav"], 24000)
 
     return "Speech generated !", out_path, speaker_audio_file
 

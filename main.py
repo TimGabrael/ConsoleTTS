@@ -1,6 +1,7 @@
 from xtts.xtts_utils import train_model, load_model, run_tts, preprocess_dataset
 import os
 import winsound
+import sys
 
 def train_model_default(directory, language, num_epochs=10, batch_size=4, grad_accum=1, max_audio_length=11):
     train_csv = os.path.join(directory, "metadata_train.csv")
@@ -30,9 +31,24 @@ def load_model_default(directory):
         print("no model found")
         return None
 
+# put the wav file in data/
+# the rest will be handled by this function
+def quick_train(wav_filename_without_ending, language):
+    out_path = "data/" + wav_filename_without_ending
+    wav_file = out_path + ".wav"
+    preprocess_dataset([wav_file], language, out_path)
+    train_model_default(out_path, language)
+
+def run_tts_on_voice(voice, text, output_filepath=""):
+    return run_tts(voice['model'], voice['language'], text, os.path.abspath(voice['audio_file']), output_filepath)
+
+available_voices = [
+        {"name": "MyVoice", "language": "de", "folder": "data/MyVoice/", "audio_file": "data/MyVoice/wavs/my_voice_0.wav", "model": None},
+]
+
 
 if __name__ == "__main__":
-    # language = "de"
+    language = "de"
     # preprocess_dataset(["data/example.wav"], language, "data/example")
     # train_model_default("data/example/", language)
 
@@ -41,5 +57,12 @@ if __name__ == "__main__":
     # if generated_file.__len__() != 0:
     #      winsound.PlaySound(generated_file, winsound.SND_FILENAME)
 
-    pass
+    for voice in available_voices:
+        voice['model'] = load_model_default(voice['folder'])
+
+    while True:
+        for line in sys.stdin:
+            log_info, generated_file, reference_file = run_tts_on_voice(available_voices[0], line, "output/generated.wav")
+            if generated_file.__len__() != 0:
+                 winsound.PlaySound(generated_file, winsound.SND_FILENAME)
 
